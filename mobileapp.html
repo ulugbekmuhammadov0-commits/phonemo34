@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Phone Lab Game — Теория стоимости</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #eef2f3;
+      color: #222;
+      text-align: center;
+      padding: 20px;
+    }
+    h1 {
+      color: #004aad;
+    }
+    input, button {
+      padding: 10px;
+      margin: 8px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+    button {
+      background-color: #007bff;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    .result {
+      margin-top: 20px;
+      background: white;
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+  </style>
+</head>
+<body>
+  <h1>📱 Phone Lab Game — Трудовая теория стоимости</h1>
+
+  <p>Создайте собственный телефон и рассчитайте добавленную стоимость!</p>
+
+  <div>
+    <input type="text" id="companyName" placeholder="Введите название компании">
+    <input type="text" id="phoneName" placeholder="Введите название телефона">
+  </div>
+
+  <div>
+    <label>Количество работников:</label>
+    <input type="number" id="workers" value="10"><br>
+
+    <label>Часы работы (в день):</label>
+    <input type="number" id="hours" value="8"><br>
+
+    <label>Качество материалов (1-10):</label>
+    <input type="number" id="materials" value="7"><br>
+
+    <label>Цена продажи за телефон ($):</label>
+    <input type="number" id="price" value="2000"><br>
+
+    <label>Дни производства:</label>
+    <input type="number" id="days" value="5"><br>
+
+    <button onclick="runProduction()">Запустить производство</button>
+  </div>
+
+  <div class="result" id="result"></div>
+
+  <script>
+    function runProduction() {
+      const company = document.getElementById('companyName').value || 'Без названия';
+      const phone = document.getElementById('phoneName').value || 'Телефон';
+      const workers = parseInt(document.getElementById('workers').value);
+      const hours = parseInt(document.getElementById('hours').value);
+      const materials = parseInt(document.getElementById('materials').value);
+      const price = parseFloat(document.getElementById('price').value);
+      const days = parseInt(document.getElementById('days').value);
+
+      const totalLaborHours = workers * hours * days;
+      const production = Math.round(totalLaborHours / (12 - materials));
+      const costPerPhone = 1000 - materials * 50;
+      const totalCost = costPerPhone * production;
+      const totalRevenue = price * production;
+      const surplusValue = totalRevenue - totalCost;
+
+      document.getElementById('result').innerHTML = `
+        <h2>Результаты производства (${company} — ${phone})</h2>
+        <p>📦 Произведено телефонов: <b>${production}</b></p>
+        <p>💵 Себестоимость одного телефона: <b>$${costPerPhone.toFixed(2)}</b></p>
+        <p>💰 Общие затраты: <b>$${totalCost.toLocaleString()}</b></p>
+        <p>💸 Общая выручка: <b>$${totalRevenue.toLocaleString()}</b></p>
+        <p>💼 Добавленная стоимость: <b style="color:green;">$${surplusValue.toLocaleString()}</b></p>
+        <p>📖 Согласно трудовой теории стоимости, прибыль (${surplusValue > 0 ? 'положительная' : 'отрицательная'}) создаётся трудом работников, а не капиталом.</p>
+      `;
+    }
+  </script>
+</body>
+</html>
