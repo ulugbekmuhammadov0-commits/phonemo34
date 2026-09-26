@@ -5,12 +5,20 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Phone Lab Game — Теория стоимости</title>
   <style>
+    * {
+      box-sizing: border-box;
+    }
     body {
       font-family: Arial, sans-serif;
       background-color: #eef2f3;
       color: #222;
       text-align: center;
       padding: 20px;
+      margin: 0;
+    }
+    main {
+      max-width: 640px;
+      margin: 0 auto;
     }
     h1 {
       color: #004aad;
@@ -20,6 +28,17 @@
       margin: 8px;
       border-radius: 8px;
       border: 1px solid #ccc;
+      font-size: 1rem;
+    }
+    input[type="number"] {
+      width: 130px;
+    }
+    input[type="text"] {
+      width: min(100%, 260px);
+    }
+    input:focus-visible, button:focus-visible {
+      outline: 2px solid #004aad;
+      outline-offset: 2px;
     }
     button {
       background-color: #007bff;
@@ -36,48 +55,118 @@
       border-radius: 10px;
       box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     }
+    .error {
+      margin-top: 20px;
+      background: #fdecea;
+      color: #b00020;
+      border: 1px solid #f5c6cb;
+      padding: 10px 15px;
+      border-radius: 10px;
+    }
+    @media (max-width: 480px) {
+      input[type="number"], input[type="text"] {
+        width: 100%;
+        margin: 6px 0;
+      }
+      label {
+        display: block;
+        margin: 10px 0 0;
+      }
+    }
   </style>
 </head>
 <body>
-  <h1>📱 Phone Lab Game — Трудовая теория стоимости</h1>
+  <main>
+    <h1>📱 Phone Lab Game — Трудовая теория стоимости</h1>
 
-  <p>Создайте собственный телефон и рассчитайте добавленную стоимость!</p>
+    <p>Создайте собственный телефон и рассчитайте добавленную стоимость!</p>
 
-  <div>
-    <input type="text" id="companyName" placeholder="Введите название компании">
-    <input type="text" id="phoneName" placeholder="Введите название телефона">
-  </div>
+    <form id="productionForm" novalidate>
+      <div>
+        <input type="text" id="companyName" placeholder="Введите название компании" maxlength="80" autocomplete="off">
+        <input type="text" id="phoneName" placeholder="Введите название телефона" maxlength="80" autocomplete="off">
+      </div>
 
-  <div>
-    <label>Количество работников:</label>
-    <input type="number" id="workers" value="10"><br>
+      <div>
+        <label for="workers">Количество работников:</label>
+        <input type="number" id="workers" value="10" min="1" max="10000" step="1"><br>
 
-    <label>Часы работы (в день):</label>
-    <input type="number" id="hours" value="8"><br>
+        <label for="hours">Часы работы (в день):</label>
+        <input type="number" id="hours" value="8" min="1" max="24" step="1"><br>
 
-    <label>Качество материалов (1-10):</label>
-    <input type="number" id="materials" value="7"><br>
+        <label for="materials">Качество материалов (1-10):</label>
+        <input type="number" id="materials" value="7" min="1" max="10" step="1"><br>
 
-    <label>Цена продажи за телефон ($):</label>
-    <input type="number" id="price" value="2000"><br>
+        <label for="price">Цена продажи за телефон ($):</label>
+        <input type="number" id="price" value="2000" min="0" max="1000000" step="any"><br>
 
-    <label>Дни производства:</label>
-    <input type="number" id="days" value="5"><br>
+        <label for="days">Дни производства:</label>
+        <input type="number" id="days" value="5" min="1" max="365" step="1"><br>
 
-    <button onclick="runProduction()">Запустить производство</button>
-  </div>
+        <button type="submit">Запустить производство</button>
+      </div>
+    </form>
 
-  <div class="result" id="result"></div>
+    <p class="error" id="formError" role="alert" hidden></p>
+    <div class="result" id="result" aria-live="polite" hidden></div>
+  </main>
 
   <script>
-    function runProduction() {
-      const company = document.getElementById('companyName').value || 'Без названия';
-      const phone = document.getElementById('phoneName').value || 'Телефон';
-      const workers = parseInt(document.getElementById('workers').value);
-      const hours = parseInt(document.getElementById('hours').value);
-      const materials = parseInt(document.getElementById('materials').value);
-      const price = parseFloat(document.getElementById('price').value);
-      const days = parseInt(document.getElementById('days').value);
+    function escapeHtml(value) {
+      return String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function readNumber(id) {
+      return Number(document.getElementById(id).value);
+    }
+
+    function validateInputs(workers, hours, materials, price, days) {
+      if (!Number.isInteger(workers) || workers < 1 || workers > 10000) {
+        return 'Количество работников должно быть целым числом от 1 до 10 000.';
+      }
+      if (!Number.isInteger(hours) || hours < 1 || hours > 24) {
+        return 'Часы работы должны быть целым числом от 1 до 24.';
+      }
+      if (!Number.isInteger(materials) || materials < 1 || materials > 10) {
+        return 'Качество материалов должно быть целым числом от 1 до 10.';
+      }
+      if (!Number.isFinite(price) || price < 0 || price > 1000000) {
+        return 'Цена продажи должна быть числом от 0 до 1 000 000.';
+      }
+      if (!Number.isInteger(days) || days < 1 || days > 365) {
+        return 'Дни производства должны быть целым числом от 1 до 365.';
+      }
+      return null;
+    }
+
+    function runProduction(event) {
+      if (event) {
+        event.preventDefault();
+      }
+      const errorBox = document.getElementById('formError');
+      const resultBox = document.getElementById('result');
+
+      const company = document.getElementById('companyName').value.trim() || 'Без названия';
+      const phone = document.getElementById('phoneName').value.trim() || 'Телефон';
+      const workers = readNumber('workers');
+      const hours = readNumber('hours');
+      const materials = readNumber('materials');
+      const price = readNumber('price');
+      const days = readNumber('days');
+
+      const error = validateInputs(workers, hours, materials, price, days);
+      if (error) {
+        errorBox.textContent = error;
+        errorBox.hidden = false;
+        resultBox.hidden = true;
+        return;
+      }
+      errorBox.hidden = true;
 
       const totalLaborHours = workers * hours * days;
       const production = Math.round(totalLaborHours / (12 - materials));
@@ -85,17 +174,21 @@
       const totalCost = costPerPhone * production;
       const totalRevenue = price * production;
       const surplusValue = totalRevenue - totalCost;
+      const surplusColor = surplusValue >= 0 ? 'green' : 'red';
 
-      document.getElementById('result').innerHTML = `
-        <h2>Результаты производства (${company} — ${phone})</h2>
+      resultBox.innerHTML = `
+        <h2>Результаты производства (${escapeHtml(company)} — ${escapeHtml(phone)})</h2>
         <p>📦 Произведено телефонов: <b>${production}</b></p>
         <p>💵 Себестоимость одного телефона: <b>$${costPerPhone.toFixed(2)}</b></p>
         <p>💰 Общие затраты: <b>$${totalCost.toLocaleString()}</b></p>
         <p>💸 Общая выручка: <b>$${totalRevenue.toLocaleString()}</b></p>
-        <p>💼 Добавленная стоимость: <b style="color:green;">$${surplusValue.toLocaleString()}</b></p>
-        <p>📖 Согласно трудовой теории стоимости, прибыль (${surplusValue > 0 ? 'положительная' : 'отрицательная'}) создаётся трудом работников, а не капиталом.</p>
+        <p>💼 Добавленная стоимость: <b style="color:${surplusColor};">$${surplusValue.toLocaleString()}</b></p>
+        <p>📖 Согласно трудовой теории стоимости, прибыль (${surplusValue >= 0 ? 'положительная' : 'отрицательная'}) создаётся трудом работников, а не капиталом.</p>
       `;
+      resultBox.hidden = false;
     }
+
+    document.getElementById('productionForm').addEventListener('submit', runProduction);
   </script>
 </body>
 </html>
